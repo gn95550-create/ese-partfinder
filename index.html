@@ -7,13 +7,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
+html, body { 
+  overflow-x: hidden; }
 :root{--ink:#202124;--ink2:#5f6368;--bd:#dadce0;--bg:#ffffff;--surface:#f7f8f9;--brand:#1a73e8;--radius:12px;--shadow:0 1px 3px rgba(60,64,67,.18),0 4px 8px rgba(60,64,67,.12);}
 *{box-sizing:border-box} body{margin:0;font-family:"Roboto","Noto Sans KR",sans-serif;background:#fff;color:var(--ink)}
-.wrap{max-width:420px;margin:0 auto;padding:0 16px}
+.wrap{width: 100%;max-width:420px;margin:0 auto;padding-left:  calc(max(16px, env(safe-area-inset-left)) + 4px);
+  padding-right: calc(max(16px, env(safe-area-inset-right)) + 4px);}
 
 /* Home */
-.home{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:20px;padding:24px 0}
-.title{font-weight:900;font-size:28px}
+.home{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap: 10px;padding:32px 0; overflow: visible;}
+.title{
+  font-weight:900;
+  font-size:36px;
+  line-height:1.15;       /* 줄간격을 조금 넉넉하게 */
+  padding:0 8px;          /* 글자 끝이 프레임에 닿지 않게 */
+  white-space:nowrap;     /* 줄바꿈 방지 */
+  overflow:visible;       /* 혹시 모를 클리핑 방지 */
+  -webkit-font-smoothing: antialiased; /* iOS 가독성 */
+  transform: translateZ(0);}
 .tag{color:var(--ink2)}
 .search-card{width:100%;display:flex;flex-direction:column;gap:14px;align-items:center}
 .search-row{width:100%;max-width:360px;display:flex;align-items:center;gap:8px;border:1px solid var(--bd);border-radius:12px;background:#fff;padding:10px 10px 10px 12px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
@@ -23,6 +34,21 @@
 .clear-btn .material-icons{font-size:18px;color:var(--ink2)}
 .ghost-primary{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--brand);color:var(--brand);background:#fff;border-radius:12px;padding:10px 16px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .ghost-primary .material-icons{font-size:20px}
+/* ---------------- Animation ---------------- */
+@keyframes slideUp {
+  0% {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-up {
+  animation: slideUp 1.5s ease-out forwards;
+}
 
 /* Results */
 .header-row{position:sticky;top:0;background:#fff;padding:10px 0 8px;z-index:10}
@@ -48,6 +74,15 @@
 .loading{color:#838b96;text-align:center;margin:18px 0}
 mark{background:#fff3bf;padding:0 .2em;border-radius:3px}
 .hidden{display:none!important}
+.pager{
+  display:flex; gap:6px; justify-content:center; flex-wrap:wrap;
+  margin:12px 0;
+}
+.page-btn{
+  min-width:36px; height:36px; padding:0 10px;
+  border:1px solid var(--bd); border-radius:8px; background:#fff; cursor:pointer;
+}
+.page-btn.active{ background:var(--brand); color:#fff; border-color:var(--brand); }
 </style>
 </head>
 <body>
@@ -55,21 +90,24 @@ mark{background:#fff3bf;padding:0 .2em;border-radius:3px}
 <div class="wrap">
   <!-- Home -->
   <main id="home" class="home">
-    <div class="title">ESE CO.,LTD</div>
-    <div class="tag">Everyone’s Satisfied…</div>
+  <div class="title animate-up">ESE CO.,LTD</div>
+  <div class="tag animate-up" style="animation-delay:0.1s">Everyone’s Satisfied…</div>
 
-    <section class="search-card">
-      <div class="search-row">
-        <span class="material-icons" aria-hidden="true" id="homeSearchIcon">search</span>
-        <input id="qHome" class="search-input" type="search" placeholder="품번, 부품명, 규격 검색" autocomplete="off"/>
-        <button id="clearHome" class="clear-btn" title="지우기"><span class="material-icons">close</span></button>
-      </div>
-
-      <button id="openAdvanced" class="ghost-primary" type="button">
-        <span class="material-icons">add</span> 고급 필터 열기
+  <section class="search-card animate-up" style="animation-delay:0.2s">
+    <div class="search-row">
+      <span class="material-icons" aria-hidden="true" id="homeSearchIcon">search</span>
+      <input id="qHome" class="search-input" type="search" placeholder="품번, 부품명, 규격 검색" autocomplete="off"/>
+      <button id="clearHome" class="clear-btn" title="지우기">
+        <span class="material-icons">close</span>
       </button>
-    </section>
-  </main>
+    </div>
+
+    <button id="openAdvanced" class="ghost-primary" type="button">
+      <span class="material-icons">add</span> 고급 필터 열기
+    </button>
+  </section>
+</main>
+
 
   <!-- Results -->
   <main id="results" class="hidden">
@@ -90,7 +128,9 @@ mark{background:#fff3bf;padding:0 .2em;border-radius:3px}
     </div>
 
     <section class="section">
+      <div id="summary" class="loading hidden"></div>
       <div id="list" class="list"></div>
+      <div id="pager" class="pager hidden"></div>
       <div id="loading" class="loading hidden">더 많은 항목 로딩 중…</div>
       <div id="empty" class="loading hidden">검색 결과가 없습니다.</div>
     </section>
@@ -99,19 +139,33 @@ mark{background:#fff3bf;padding:0 .2em;border-radius:3px}
 
 <!-- ✅ 스크립트는 이 '한 블록'만 남기세요 -->
 <script>
-let started = false;   // ← 검색 시작 여부
-
 const API = 'https://script.google.com/macros/s/AKfycbyaN7tAdvCjHbaVFVPhJSou-0cuaqquJ0yNkdmCVO3Y2tcxLquWkCsiyYBHKZhVCjf2/exec';
+// 검색어 하이라이트
+// 검색어 하이라이트 (공백 무시)
+function hl(text, key){
+  const raw = String(text ?? '');
+  const k = String(key ?? '').replace(/\s+/g,'');   // 공백 제거
+  if(!k) return raw;
+
+  // ex) "y4" → /y\s*4/gi  (사이 공백 허용)
+  const pattern = k.split('').map(ch => ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*');
+  const re = new RegExp(pattern, 'gi');
+  return raw.replace(re, m => `<mark>${m}</mark>`);
+}
+
+
+
 
 let currentKey = '';
+let started = false;
 let page = 1;
-const limit = 30;
-let hasMore = true;
+const limit = 10;
 let loading = false;
+let totalCount = 0;
 
-const $  = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
+const $ = s => document.querySelector(s);
 
+/* 화면 전환 */
 function go(state){
   if(state==='home'){
     $('#home')?.classList.remove('hidden');
@@ -122,20 +176,10 @@ function go(state){
   }
 }
 
-function hl(text, key){
-  if(!key) return String(text||'');
-  const esc = key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  return String(text||'').replace(new RegExp(esc,'gi'), m=>`<mark>${m}</mark>`);
-}
-
+/* 결과 카드 렌더 */
 function renderItems(items){
   const list = $('#list');
-  if ((!items || items.length===0) && list.children.length===0){
-    $('#empty')?.classList.remove('hidden');
-    return;
-  }
-  $('#empty')?.classList.add('hidden');
-
+  list.innerHTML = '';
   const frag = document.createDocumentFragment();
   items.forEach(r=>{
     const el = document.createElement('div');
@@ -159,96 +203,121 @@ function renderItems(items){
   list.appendChild(frag);
 }
 
-async function fetchPage(reset=false){
+/* 총 건수 표시 */
+function updateSummary(){
+  const sum = $('#summary');
+  if (!totalCount){ sum.classList.add('hidden'); sum.textContent=''; return; }
+  sum.textContent = `총 ${totalCount.toLocaleString()}건 · 페이지 ${page}`;
+  sum.classList.remove('hidden');
+}
+
+/* 페이저 렌더 */
+function renderPager(total){
+  const pager = $('#pager');
+  const pages = Math.max(1, Math.ceil(total/limit));
+  if (pages <= 1){ pager.classList.add('hidden'); pager.innerHTML=''; return; }
+
+  const maxBtns = 7;
+  let start = Math.max(1, page-3);
+  let end   = Math.min(pages, start+maxBtns-1);
+  if (end-start+1 < maxBtns) start = Math.max(1, end-maxBtns+1);
+
+  let html = '';
+  if (page > 1) html += `<button class="page-btn" data-p="${page-1}">이전</button>`;
+  for (let p=start; p<=end; p++){
+    html += `<button class="page-btn ${p===page?'active':''}" data-p="${p}">${p}</button>`;
+  }
+  if (page < pages) html += `<button class="page-btn" data-p="${page+1}">다음</button>`;
+
+  pager.innerHTML = html;
+  pager.classList.remove('hidden');
+
+  pager.querySelectorAll('.page-btn').forEach(btn=>{
+    btn.onclick = () => {
+      const goTo = parseInt(btn.dataset.p, 10) || 1;
+      fetchPage({ goTo });
+      window.scrollTo({top:0, behavior:'smooth'});
+    };
+  });
+}
+
+/* API 호출 */
+async function fetchPage({goTo} = {}){
   if (!started) return;
   if (loading) return;
-  if (reset){
-    page = 1; hasMore = true;
-    $('#list').innerHTML = '';
-    $('#empty')?.classList.add('hidden');
-  }
-  if (!hasMore) return;
+
+  if (typeof goTo === 'number') page = Math.max(1, goTo);
+
+  $('#empty').classList.add('hidden');
+  $('#loading').classList.remove('hidden');
 
   loading = true;
-  $('#loading')?.classList.remove('hidden');
-
-  const url = `${API}?q=${encodeURIComponent(currentKey.trim())}&page=${page}&limit=${limit}`;
   try{
-    const res = await fetch(url, { cache: 'no-store' });
-    const text = await res.text();
+    const url = `${API}?q=${encodeURIComponent(currentKey)}&page=${page}&limit=${limit}`;
     console.log('API URL =>', url);
-    console.log('API RAW =>', text);
+    const res = await fetch(url, { cache:'no-store' });
+    const json = await res.json();
+    const items = json.items || [];
+    totalCount  = json.total || 0;
 
-    let json;
-    try { json = JSON.parse(text); }
-    catch(e){
-      alert('API가 JSON이 아니라서 파싱 실패했어요. 콘솔(log)을 확인해주세요.');
-      throw e;
-    }
-
-    const { items, hasMore: more } = json;
     renderItems(items);
-    hasMore = more;
-    page++;
+    updateSummary();
+    renderPager(totalCount);
+    if (items.length === 0){ $('#empty').classList.remove('hidden'); }
   }catch(err){
     console.error(err);
-    $('#empty')?.classList.remove('hidden');
+    $('#empty').classList.remove('hidden');
   }finally{
-    $('#loading')?.classList.add('hidden');
+    $('#loading').classList.add('hidden');
     loading = false;
   }
 }
 
-
+/* 이벤트 바인딩 */
 document.addEventListener('DOMContentLoaded', ()=>{
   go('home');
-  const doSearchFromHome = async ()=>{
-  currentKey = $('#qHome').value.trim();
-  if (currentKey.length < 2) { $('#qHome').focus(); return; } // 선택: 2자 미만 방지
-  started = true;                // ← 여기에서만 true
+
+  // 홈 → 검색 실행 (돋보기/엔터)
+  const doSearchFromHome = ()=>{
+  currentKey = $('#qHome').value.trim().replace(/\s+/g,'');   // ★ 공백 제거
+  if (currentKey.length < 2){ alert('검색어를 2글자 이상 입력해주세요.'); return; }
+  started = true; page = 1;
   $('#qResults').value = currentKey;
   go('results');
-  await fetchPage(true);
+  fetchPage({ goTo: 1 });
 };
 
-$('#qResults')?.addEventListener('keydown', async (e)=>{
+  $('#homeSearchIcon')?.addEventListener('click', doSearchFromHome);
+  $('#qHome')?.addEventListener('keydown', e=>{ if(e.key==='Enter') doSearchFromHome(); });
+
+  // 결과 화면 상단 검색(엔터)
+  $('#qResults')?.addEventListener('keydown', e=>{
   if(e.key==='Enter'){
-    currentKey = e.target.value.trim();
-    if (currentKey.length < 2) return;   // 선택
-    if ($('#results').classList.contains('hidden')) go('results');
-    started = true;                      // ← 여기서도 true
-    await fetchPage(true);
+    currentKey = $('#qResults').value.trim().replace(/\s+/g,'');  // ★ 공백 제거
+    if (currentKey.length < 2){ alert('검색어를 2글자 이상 입력해주세요.'); return; }
+    started = true; page = 1;
+    fetchPage({ goTo: 1 });
   }
 });
 
-  $('#homeSearchIcon')?.parentElement.addEventListener('click', doSearchFromHome);
-  $('#qHome')?.addEventListener('keydown', e=>{ if(e.key==='Enter') doSearchFromHome(); });
+  // 지우기
   $('#clearHome')?.addEventListener('click', ()=>{ $('#qHome').value=''; $('#qHome').focus(); });
-
-  $('#qResults')?.addEventListener('keydown', async (e)=>{
-    if(e.key==='Enter'){
-      currentKey = e.target.value.trim();
-      await fetchPage(true);
-    }
+  $('#clearResults')?.addEventListener('click', ()=>{
+    $('#qResults').value=''; $('#qResults').focus();
+    currentKey=''; started=false; page=1; totalCount=0;
+    $('#list').innerHTML='';
+    $('#summary').classList.add('hidden');
+    $('#pager').classList.add('hidden');
+    $('#empty').classList.add('hidden');
   });
-  $('#clearResults')?.addEventListener('click', async ()=>{
-  $('#qResults').value=''; $('#qResults').focus();
-  currentKey=''; $('#list').innerHTML=''; $('#empty')?.classList.add('hidden');
-  hasMore=false;
-  started = false;   // ← 다시 잠금
-});
 
-
+  // 필터 안내
   $('#filterBtn')?.addEventListener('click', ()=> alert('필터 패널은 추후 연결됩니다.'));
+  $('#openAdvanced')?.addEventListener('click', ()=> alert('필터 패널은 추후 연결됩니다.'));
 
-  window.addEventListener('scroll', async ()=>{
-    if($('#results')?.classList.contains('hidden')) return;
-    if(!hasMore || loading) return;
-    const nearBottom = window.scrollY + window.innerHeight + 120 >= document.body.scrollHeight;
-    if(nearBottom){ await fetchPage(false); }
-  });
-
+  // 초기 포커스
   $('#qHome')?.focus();
+  
 });
 </script>
 </body>
