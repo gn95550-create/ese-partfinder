@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ESE Part Finder</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+:root{--ink:#202124;--ink2:#5f6368;--bd:#dadce0;--bg:#ffffff;--surface:#f7f8f9;--brand:#1a73e8;--radius:12px;--shadow:0 1px 3px rgba(60,64,67,.18),0 4px 8px rgba(60,64,67,.12);}
+*{box-sizing:border-box} body{margin:0;font-family:"Roboto","Noto Sans KR",sans-serif;background:#fff;color:var(--ink)}
+.wrap{max-width:420px;margin:0 auto;padding:0 16px}
+
+/* Home */
+.home{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:20px;padding:24px 0}
+.title{font-weight:900;font-size:28px}
+.tag{color:var(--ink2)}
+.search-card{width:100%;display:flex;flex-direction:column;gap:14px;align-items:center}
+.search-row{width:100%;max-width:360px;display:flex;align-items:center;gap:8px;border:1px solid var(--bd);border-radius:12px;background:#fff;padding:10px 10px 10px 12px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.search-row .material-icons{font-size:22px;color:var(--ink2)}
+.search-input{flex:1;border:none;outline:none;font-size:16px;background:transparent}
+.clear-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:16px;border:1px solid var(--bd);background:#fff;cursor:pointer}
+.clear-btn .material-icons{font-size:18px;color:var(--ink2)}
+.ghost-primary{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--brand);color:var(--brand);background:#fff;border-radius:12px;padding:10px 16px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.ghost-primary .material-icons{font-size:20px}
+
+/* Results */
+.header-row{position:sticky;top:0;background:#fff;padding:10px 0 8px;z-index:10}
+.search-row.results{max-width:none;padding:10px 10px 10px 12px}
+.filter-btn{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:#365a7f;color:#fff;border:none;cursor:pointer}
+.filter-btn .material-icons{color:#fff}
+
+.selected-filters{display:flex;gap:8px;flex-wrap:wrap;background:#e9f0ff;border:1px solid #d2defa;border-radius:10px;padding:8px 10px;margin-top:8px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--bd);border-radius:999px;padding:6px 10px;font-size:13px;color:#2e3a4a}
+.badge .key{color:#6a7a8a}
+
+.section{margin:12px 0}
+.card{background:#fff;border:1px solid var(--bd);box-shadow:var(--shadow);border-radius:12px;padding:14px}
+.item{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px}
+.list{display:flex;flex-direction:column;gap:12px}
+.code{font-weight:800;letter-spacing:.2px}
+.sub{margin-top:6px;color:var(--ink2)}
+.hr{height:1px;background:#eceff3;margin:12px 0}
+.btn-row{display:flex;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--bd);border-radius:10px;padding:8px 12px;background:#fff;color:var(--ink);cursor:pointer}
+.btn .material-icons{font-size:18px;color:var(--ink2)}
+.copy-done{color:#0b7c0b;font-weight:600}
+.loading{color:#838b96;text-align:center;margin:18px 0}
+mark{background:#fff3bf;padding:0 .2em;border-radius:3px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <!-- Home -->
+  <main id="home" class="home">
+    <div class="title">ESE CO.,LTD</div>
+    <div class="tag">Everyone’s Satisfied…</div>
+
+    <section class="search-card">
+      <div class="search-row">
+        <span class="material-icons" aria-hidden="true" id="homeSearchIcon">search</span>
+        <input id="qHome" class="search-input" type="search" placeholder="품번, 부품명, 규격 검색" autocomplete="off"/>
+        <button id="clearHome" class="clear-btn" title="지우기"><span class="material-icons">close</span></button>
+      </div>
+
+      <button id="openAdvanced" class="ghost-primary" type="button">
+        <span class="material-icons">add</span> 고급 필터 열기
+      </button>
+    </section>
+  </main>
+
+  <!-- Results -->
+  <main id="results" class="hidden">
+    <div class="header-row">
+      <div class="search-row results">
+        <span class="material-icons">search</span>
+        <input id="qResults" class="search-input" type="search" placeholder="품번/ 품명/ 규격 입력" autocomplete="off"/>
+        <button id="clearResults" class="clear-btn" title="지우기"><span class="material-icons">close</span></button>
+        <button id="filterBtn" class="filter-btn" title="필터">
+          <span class="material-icons">filter_list</span>
+        </button>
+      </div>
+      <div id="selectedFilters" class="selected-filters">
+        <div class="badge"><span class="key">자재:</span> SUS</div>
+        <div class="badge"><span class="key">규격:</span> M6~M12</div>
+        <div class="badge"><span class="key">조건:</span> AND</div>
+      </div>
+    </div>
+
+    <section class="section">
+      <div id="list" class="list"></div>
+      <div id="loading" class="loading hidden">더 많은 항목 로딩 중…</div>
+      <div id="empty" class="loading hidden">검색 결과가 없습니다.</div>
+    </section>
+    </main>
+</div>
+
+<!-- ✅ 스크립트는 이 '한 블록'만 남기세요 -->
+<script>
+let started = false;   // ← 검색 시작 여부
+
+const API = 'https://script.google.com/macros/s/AKfycbyaN7tAdvCjHbaVFVPhJSou-0cuaqquJ0yNkdmCVO3Y2tcxLquWkCsiyYBHKZhVCjf2/exec';
+
+let currentKey = '';
+let page = 1;
+const limit = 30;
+let hasMore = true;
+let loading = false;
+
+const $  = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+function go(state){
+  if(state==='home'){
+    $('#home')?.classList.remove('hidden');
+    $('#results')?.classList.add('hidden');
+  }else{
+    $('#home')?.classList.add('hidden');
+    $('#results')?.classList.remove('hidden');
+  }
+}
+
+function hl(text, key){
+  if(!key) return String(text||'');
+  const esc = key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return String(text||'').replace(new RegExp(esc,'gi'), m=>`<mark>${m}</mark>`);
+}
+
+function renderItems(items){
+  const list = $('#list');
+  if ((!items || items.length===0) && list.children.length===0){
+    $('#empty')?.classList.remove('hidden');
+    return;
+  }
+  $('#empty')?.classList.add('hidden');
+
+  const frag = document.createDocumentFragment();
+  items.forEach(r=>{
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.innerHTML = `
+      <div class="code">${hl(r.code, currentKey)}</div>
+      <div class="sub">${hl(r.name, currentKey)}</div>
+      <div class="sub">${hl(r.spec, currentKey)}${r.vendor ? ' · '+r.vendor : ''}</div>
+      <div class="hr"></div>
+      <div class="btn-row">
+        <button class="btn" onclick="alert('상세보기는 추후 연결됩니다.')">
+          <span class="material-icons">info</span> 상세보기
+        </button>
+        <button class="btn" onclick="navigator.clipboard.writeText('${(r.code||'').replace(/'/g,"\\'")}')">
+          <span class="material-icons">content_copy</span> 복사
+        </button>
+      </div>
+    `;
+    frag.appendChild(el);
+  });
+  list.appendChild(frag);
+}
+
+async function fetchPage(reset=false){
+  if (!started) return;
+  if (loading) return;
+  if (reset){
+    page = 1; hasMore = true;
+    $('#list').innerHTML = '';
+    $('#empty')?.classList.add('hidden');
+  }
+  if (!hasMore) return;
+
+  loading = true;
+  $('#loading')?.classList.remove('hidden');
+
+  const url = `${API}?q=${encodeURIComponent(currentKey.trim())}&page=${page}&limit=${limit}`;
+  try{
+    const res = await fetch(url, { cache: 'no-store' });
+    const text = await res.text();
+    console.log('API URL =>', url);
+    console.log('API RAW =>', text);
+
+    let json;
+    try { json = JSON.parse(text); }
+    catch(e){
+      alert('API가 JSON이 아니라서 파싱 실패했어요. 콘솔(log)을 확인해주세요.');
+      throw e;
+    }
+
+    const { items, hasMore: more } = json;
+    renderItems(items);
+    hasMore = more;
+    page++;
+  }catch(err){
+    console.error(err);
+    $('#empty')?.classList.remove('hidden');
+  }finally{
+    $('#loading')?.classList.add('hidden');
+    loading = false;
+  }
+}
+
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  go('home');
+  const doSearchFromHome = async ()=>{
+  currentKey = $('#qHome').value.trim();
+  if (currentKey.length < 2) { $('#qHome').focus(); return; } // 선택: 2자 미만 방지
+  started = true;                // ← 여기에서만 true
+  $('#qResults').value = currentKey;
+  go('results');
+  await fetchPage(true);
+};
+
+$('#qResults')?.addEventListener('keydown', async (e)=>{
+  if(e.key==='Enter'){
+    currentKey = e.target.value.trim();
+    if (currentKey.length < 2) return;   // 선택
+    if ($('#results').classList.contains('hidden')) go('results');
+    started = true;                      // ← 여기서도 true
+    await fetchPage(true);
+  }
+});
+
+  $('#homeSearchIcon')?.parentElement.addEventListener('click', doSearchFromHome);
+  $('#qHome')?.addEventListener('keydown', e=>{ if(e.key==='Enter') doSearchFromHome(); });
+  $('#clearHome')?.addEventListener('click', ()=>{ $('#qHome').value=''; $('#qHome').focus(); });
+
+  $('#qResults')?.addEventListener('keydown', async (e)=>{
+    if(e.key==='Enter'){
+      currentKey = e.target.value.trim();
+      await fetchPage(true);
+    }
+  });
+  $('#clearResults')?.addEventListener('click', async ()=>{
+  $('#qResults').value=''; $('#qResults').focus();
+  currentKey=''; $('#list').innerHTML=''; $('#empty')?.classList.add('hidden');
+  hasMore=false;
+  started = false;   // ← 다시 잠금
+});
+
+
+  $('#filterBtn')?.addEventListener('click', ()=> alert('필터 패널은 추후 연결됩니다.'));
+
+  window.addEventListener('scroll', async ()=>{
+    if($('#results')?.classList.contains('hidden')) return;
+    if(!hasMore || loading) return;
+    const nearBottom = window.scrollY + window.innerHeight + 120 >= document.body.scrollHeight;
+    if(nearBottom){ await fetchPage(false); }
+  });
+
+  $('#qHome')?.focus();
+});
+</script>
+</body>
+</html>
